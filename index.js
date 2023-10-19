@@ -57,6 +57,15 @@ async function run() {
 
       res.send(result);
     });
+    // Read All General Product From Database:
+    app.get("/addProducts/:brand_name", async (req, res) => {
+      const products = req.params;
+      const query = { brand_name: products.brand_name };
+      const cursor = AddProductCollection.find(query);
+      const result = await cursor.toArray();
+
+      res.send(result);
+    });
     // POST and Read From Database:
     app.post("/addProducts", async (req, res) => {
       try {
@@ -67,13 +76,7 @@ async function run() {
         const cursor = AddProductCollection.find(query);
         const result = await cursor.toArray();
         res.send(result);
-      //   if (result.length > 0) {
-      //     // Products matching the brand_name were found
-      //     res.send(result);
-      //   } else {
-      //     // No products found for the specified brand_name
-      //     res.send([]);
-      //   }
+      
       } catch (error) {
         console.error("Error querying the database:", error);
         res.status(500).send("Internal Server Error");

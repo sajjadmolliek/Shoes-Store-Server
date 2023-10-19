@@ -23,39 +23,44 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
-    const AddProductCollection = client.db("AddProductDB").collection("Products");
+    // Database For All Product Adding By Admin
+    const AddProductCollection = client
+      .db("AddProductDB")
+      .collection("Products");
+    // Database For Add Product in the cart
+    const AddCartProductCollection = client.db("CartDB").collection("CartData");
 
     // --------------------------------AddProductCollection Data Collection Server--------------------------------------
 
-    // Insert Into Database:
+    // General Products Section
+
+    // Insert General Data Into Database:
     app.post("/addProduct", async (req, res) => {
       const addingProducts = req.body;
       const result = await AddProductCollection.insertOne(addingProducts);
       res.send(result);
     });
-    // Read From Database:
+    // Read All General Product From Database:
     app.get("/addProduct", async (req, res) => {
       const cursor = AddProductCollection.find();
       const result = await cursor.toArray();
 
       res.send(result);
     });
-
     // POST and Read From Database:
     app.post("/addProducts", async (req, res) => {
       try {
         const products = req.body; // This contains the brand_name sent from the frontend
-    
+
         // Use the brand_name to query your MongoDB collection
-        const query = { brand_name: products.brand_name};
+        const query = { brand_name: products.brand_name };
         const cursor = AddProductCollection.find(query);
         const result = await cursor.toArray();
-    
+
         if (result.length > 0) {
           // Products matching the brand_name were found
           res.send(result);
@@ -69,12 +74,64 @@ async function run() {
       }
     });
 
-    
-    // Delete Data From Database
-    app.delete("/addProducting/:id", async (req, res) => {
+    // Read With Id From All Cart Product From Database:
+    app.get("/addProduct/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await AddProductCollection.deleteOne(query);
+      const result = await AddProductCollection.findOne(query);
+      res.send(result);
+    });
+
+    // Update Data in Database
+    app.patch("/addProduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const query = { _id: new ObjectId(id) };
+
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          name: data.name,
+          brand_name:data.brand_name,
+          type:data.type,
+          price:data.price,
+          description:data.description,
+          rating:data.rating,
+          photo:data.photo,
+        },
+      };
+      console.log(updateDoc);
+      const result = await AddProductCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+
+
+    // Card Data Product Section
+
+    // Insert Cart Data Into Database:
+    app.post("/cartProduct", async (req, res) => {
+      const addingCartProducts = req.body;
+      const result = await AddCartProductCollection.insertOne(
+        addingCartProducts
+      );
+      res.send(result);
+    });
+
+    // Read All Cart Product From Database:
+    app.get("/cartProduct", async (req, res) => {
+      const cursor = AddCartProductCollection.find();
+      const result = await cursor.toArray();
+
+      res.send(result);
+    });
+
+    // Delete Data From Database
+    app.delete("/cartProduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await AddCartProductCollection.deleteOne(query);
       res.send(result);
     });
 
